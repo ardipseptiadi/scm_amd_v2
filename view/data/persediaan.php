@@ -13,8 +13,8 @@
     11=>'Nopember',
     12=>'Desember'
   );
-  $bln_safety = 2;
-  $thn_safety = 1970;
+  $bln_safety = 1;
+  $thn_safety = 2017;
   if(isset($_GET['tgl1_safety']) && isset($_GET['tgl2_safety'])){
     $bln_safety = !$_GET['tgl1_safety']?1:$_GET['tgl1_safety'];
     $thn_safety = !$_GET['tgl2_safety']?2017:$_GET['tgl2_safety'];
@@ -95,7 +95,7 @@
       <td><?=$data['nama_material'];?></td>
       <td><?=$data['sisa'];?></td>
       <td><?=$data['jumlah'];?></td>
-      <td><?=$data['status'];?></td>
+      <td><?=$data['status_tersedia'];?></td>
     </tr>
   <?php $i_table++;?>
   <?php } ?>

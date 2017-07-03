@@ -321,7 +321,8 @@ function dataSafety($bln,$thn)
                   mt.nama_material,
                   mt.sisa,
                   mt.status,
-                  ms.jumlah
+                  ms.jumlah,
+                  IF(mt.sisa<ms.jumlah,'Persediaan Tidak Aman','Persediaan Aman') AS status_tersedia
                 FROM
                   t_material mt
                 LEFT JOIN
