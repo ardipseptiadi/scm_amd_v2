@@ -18,6 +18,8 @@ if(isset($_SESSION['is_login']) && $_SESSION['is_login'])
   <link rel="stylesheet" href="css/bootstrap.min.css">
   <script src="jquery/jquery-3.1.1.min.js"></script>
   <script src="js/bootstrap.min.js"></script>
+  <script src="datepicker/js/bootstrap-datepicker.min.js"></script>
+  <link rel="stylesheet" href="datepicker/css/bootstrap-datepicker3.css">
   <style>
     /* Remove the navbar's default margin-bottom and rounded borders */
     .navbar {
@@ -157,7 +159,22 @@ if(isset($_SESSION['is_login']) && $_SESSION['is_login'])
 <footer class="container-fluid text-center">
 
 </footer>
-
+<script type="text/javascript">
+$(document).ready(function() {
+	$('.input_tanggal').datepicker({
+		format : "mm-yyyy",
+    startView: 2,
+    minViewMode: 1,
+    autoclose: true
+	});
+	$('$tanggal').daterangepicker(
+	{
+	singleDatePicker: true,
+	format : 'YYYY-MM-DD'
+	}
+	);
+});
+</script>]
 </body>
 </html>
 <?php

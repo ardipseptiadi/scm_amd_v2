@@ -338,6 +338,94 @@ function dataSafety($bln,$thn)
   }
 }
 
+function getAllPeramalan(){
+  $conn_open = open_conn();
+  if($conn_open){
+    $result = mysqli_query($conn_open,"
+              SELECT
+                prm.peramalan,
+                prm.hasil,
+                prm.kode_produk
+              FROM
+                t_peramalan prm
+            ");
+    $array_data = mysqli_fetch_all($result,MYSQLI_ASSOC);
+    free_close_db($result,$conn_open);
+    return $array_data;
+  }else{
+    return false;
+  }
+}
+
+function getAllPengadaan(){
+  $conn_open = open_conn();
+  if($conn_open){
+    $result = mysqli_query($conn_open,"
+              SELECT
+                t_pengadaan.id_pengadaan,
+                t_pengadaan.tgl_pengadaan,
+                t_pengadaan.verifikasi,
+                t_pengadaan.status,
+                t_supplier.nama_supplier
+              FROM t_pengadaan
+              INNER JOIN t_supplier ON t_pengadaan.id_supplier = t_supplier.id_supplier
+            ");
+    $array_data = mysqli_fetch_all($result,MYSQLI_ASSOC);
+    free_close_db($result,$conn_open);
+    return $array_data;
+  }else{
+    return false;
+  }
+}
+
+function getLastPeramalan($kodeproduk)
+{
+  $conn_open = open_conn();
+  if($conn_open){
+    $query  = "SELECT hasil FROM t_peramalan WHERE kode_produk = '".$kodeproduk."' ORDER BY id_peramalan LIMIT 1";
+    $result = mysqli_query($conn_open,$query);
+    $array_data = mysqli_fetch_assoc($result);
+    free_close_db($result,$conn_open);
+    return $array_data['hasil'];
+  }else{
+    return false;
+  }
+}
+
+function getDataPesananBulan($date,$kodeproduk)
+{
+  $start = $date.'-01';
+  $end = $date.'-31';
+  $conn_open = open_conn();
+  if($conn_open){
+    $query = "
+            SELECT SUM(jumlah) AS jumlah FROM t_detail_pemesanan
+            WHERE kode_produk = '".$kodeproduk."'
+            AND kode_pesan IN (
+            SELECT kode_pesan FROM t_pemesanan
+            WHERE tgl_pesan BETWEEN '".$start."' AND '".$end."')
+              ";
+    $result = mysqli_query($conn_open,$query);
+    $array_data = mysqli_fetch_assoc($result);
+    free_close_db($result,$conn_open);
+    return $array_data['jumlah'];
+  }else{
+    return false;
+  }
+}
+
+function insertPeramalan($bln,$jumlah,$kode)
+{
+  $conn_open = open_conn();
+  if($conn_open){
+    $query = "INSERT INTO t_peramalan (peramalan,hasil,kode_produk) VALUES ('".$bln."','".$jumlah."','".$kode."')";
+    $result = mysqli_query($conn_open,$query);
+    return true;
+  }else{
+    return false;
+  }
+}
+
 function cekLogin($nip,$pass)
 {
   $nip = trim($nip);

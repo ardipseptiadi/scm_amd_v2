@@ -1,5 +1,6 @@
 <?php
 include(dirname(__FILE__).'/lib/query.php');
+include(dirname(__FILE__).'/lib/function.php');
 
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
