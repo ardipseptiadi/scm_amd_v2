@@ -137,6 +137,141 @@ function getPengiriman()
   }
 }
 
+function getSupplierByMaterial($id)
+{
+  $conn_open = open_conn();
+  if($conn_open){
+    $query = "SELECT id_supplier,nama_supplier
+              FROM t_supplier
+              WHERE id_supplier IN (SELECT id_supplier FROM t_material WHERE id_material = {$id})
+              LIMIT 1
+              ";
+    $result = mysqli_query($conn_open,$query);
+    $array_data = mysqli_fetch_assoc($result);
+    free_close_db($result,$conn_open);
+    return $array_data;
+  }else{
+    return false;
+  }
+}
+
+function getMaterialSafety($id,$bln,$thn)
+{
+  $conn_open = open_conn();
+  if($conn_open){
+    $query = "
+            SELECT ms.jumlah,m.sisa
+            FROM t_material_safety ms
+            LEFT JOIN t_material m ON ms.id_material = m.id_material
+            WHERE ms.id_material = {$id}
+            AND ms.bulan = {$bln}
+            AND ms.tahun = {$thn}
+            ";
+    $result = mysqli_query($conn_open,$query);
+    $array_data = mysqli_fetch_assoc($result);
+    free_close_db($result,$conn_open);
+    return $array_data;
+  }else{
+    return false;
+  }
+}
+
+function getPeramalanByProduk($kd,$date)
+{
+  $conn_open = open_conn();
+  if($conn_open){
+    $query = "SELECT hasil FROM t_peramalan WHERE peramalan = {$date} AND kode_produk = {$kd} ORDER BY id_peramalan DESC LIMIT 1
+              ";
+    $result = mysqli_query($conn_open,$query);
+    $array_data = mysqli_fetch_assoc($result);
+    free_close_db($result,$conn_open);
+    return $array_data;
+  }else{
+    return false;
+  }
+}
+
+function getLastPengadaan($kd)
+{
+  $conn_open = open_conn();
+  if($conn_open){
+    $query = "SELECT no_pengadaan
+              FROM t_pengadaan
+              WHERE kd_produk = '{$kd}'
+              AND no_pengadaan IS NOT NULL
+              ORDER BY created_at DESC LIMIT 1";
+    $result = mysqli_query($conn_open,$query);
+    $array_data = mysqli_fetch_assoc($result);
+    free_close_db($result,$conn_open);
+    return $array_data;
+  }else{
+    return false;
+  }
+}
+
+function getNameProduk($kd)
+{
+    $conn_open = open_conn();
+    if($conn_open){
+      $query = "SELECT jenis
+                FROM t_produk
+                WHERE kode_produk = '{$kd}'";
+      $result = mysqli_query($conn_open,$query);
+      $array_data = mysqli_fetch_assoc($result);
+      free_close_db($result,$conn_open);
+      return $array_data['jenis'];
+    }else{
+      return false;
+    }
+}
+
+function insertPengadaan($no_pengadaan,$kd,$jml,$total_harga)
+{
+  $conn_open = open_conn();
+  if($conn_open){
+    $result = mysqli_query($conn_open,"
+              INSERT INTO t_pengadaan (no_pengadaan,tgl_pengadaan,kd_produk,jumlah,total_harga,created_at)
+              VALUES('$no_pengadaan',NOW(),'$kd','$jml','$total_harga',NOW())
+            ");
+    if(!$result){
+      free_close_db($result,$conn_open);
+      return false;
+    }else{
+      $id = mysqli_insert_id($conn_open);
+      free_close_db($result,$conn_open);
+      return $id;
+    }
+  }else{
+    return false;
+  }
+}
+
+function insertDetailPengadaan($detail)
+{
+  $conn_open = open_conn();
+  $no_pengadaan = $detail['no_pengadaan'];
+  $id_material = $detail['id_material'];
+  $id_supplier = $detail['id_supplier'];
+  $id_pengadaan = $detail['id_pengadaan'];
+  $qty = $detail['qty'];
+  if($conn_open){
+    $result = mysqli_query($conn_open,"
+              INSERT INTO t_pengadaan_detail (no_pengadaan,id_material,id_supplier,qty_pengadaan,id_pengadaan,created_at)
+              VALUES('$no_pengadaan','$id_material','$id_supplier','$qty','$id_pengadaan',NOW())
+            ");
+    if(!$result){
+      free_close_db($result,$conn_open);
+      return false;
+    }else{
+      $id = mysqli_insert_id($conn_open);
+      free_close_db($result,$conn_open);
+      return $id;
+    }
+  }else{
+    return false;
+  }
+}
+
 function getPersediaan()
 {
   $conn_open = open_conn();
@@ -168,6 +303,28 @@ function getAllMaterial()
                 nama_material
               FROM
                 t_material
+              ORDER BY nama_material
+            ");
+    $array_data = mysqli_fetch_all($result,MYSQLI_ASSOC);
+    free_close_db($result,$conn_open);
+    return $array_data;
+  }else{
+    return false;
+  }
+}
+
+function getAllMaterialByProduk($kode)
+{
+  $conn_open = open_conn();
+  if($conn_open){
+    $result = mysqli_query($conn_open,"
+              SELECT
+                id_material,
+                nama_material
+              FROM
+                t_material
+              WHERE
+                kd_produk = '{$kode}'
               ORDER BY nama_material
             ");
     $array_data = mysqli_fetch_all($result,MYSQLI_ASSOC);
@@ -357,18 +514,19 @@ function getAllPeramalan(){
   }
 }
 
-function getAllPengadaan(){
+function getAllPengadaan()
+{
   $conn_open = open_conn();
   if($conn_open){
     $result = mysqli_query($conn_open,"
               SELECT
-                t_pengadaan.id_pengadaan,
-                t_pengadaan.tgl_pengadaan,
-                t_pengadaan.verifikasi,
-                t_pengadaan.status,
-                t_supplier.nama_supplier
-              FROM t_pengadaan
-              INNER JOIN t_supplier ON t_pengadaan.id_supplier = t_supplier.id_supplier
+                pgd.id_pengadaan,
+                pgd.no_pengadaan,
+                pgd.tgl_pengadaan,
+                prd.jenis,
+                pgd.is_verifikasi
+              FROM t_pengadaan pgd
+              INNER JOIN t_produk prd ON pgd.kd_produk = prd.kode_produk
             ");
     $array_data = mysqli_fetch_all($result,MYSQLI_ASSOC);
     free_close_db($result,$conn_open);
@@ -378,11 +536,79 @@ function getAllPengadaan(){
   }
 }
 
+function getPengadaanDetailByID($id)
+{
+  $conn_open = open_conn();
+  if($conn_open){
+    $result = mysqli_query($conn_open,"
+              SELECT
+                pgd.no_pengadaan,
+                pgd.qty_pengadaan,
+                mt.nama_material,
+                sp.nama_supplier
+              FROM t_pengadaan_detail pgd
+              LEFT JOIN
+                t_material mt ON pgd.id_material = mt.id_material
+              LEFT JOIN
+                t_supplier sp ON pgd.id_supplier = sp.id_supplier
+              WHERE
+                id_pengadaan = '{$id}'
+            ");
+    $array_data = mysqli_fetch_all($result,MYSQLI_ASSOC);
+    free_close_db($result,$conn_open);
+    return $array_data;
+  }else{
+    return false;
+  }
+}
+
+function verifikasiPengadaan($id)
+{
+  $conn_open = open_conn();
+  if($conn_open){
+    $query = "UPDATE t_pengadaan
+              SET is_verifikasi = 1
+              WHERE id_pengadaan = {$id}
+            ";
+    $result = mysqli_query($conn_open,$query);
+    if(mysqli_affected_rows($conn_open)>0){
+      free_close_db($result,$conn_open);
+      return true;
+    }else{
+      free_close_db($result,$conn_open);
+      return false;
+    }
+  }else{
+    return false;
+  }
+}
+
+function batalVerifikasiPengadaan($id)
+{
+  $conn_open = open_conn();
+  if($conn_open){
+    $query = "UPDATE t_pengadaan
+              SET is_verifikasi = 0
+              WHERE id_pengadaan = {$id}
+            ";
+    $result = mysqli_query($conn_open,$query);
+    if(mysqli_affected_rows($conn_open)>0){
+      free_close_db($result,$conn_open);
+      return true;
+    }else{
+      free_close_db($result,$conn_open);
+      return false;
+    }
+  }else{
+    return false;
+  }
+}
+
 function getLastPeramalan($kodeproduk)
 {
   $conn_open = open_conn();
   if($conn_open){
-    $query  = "SELECT hasil FROM t_peramalan WHERE kode_produk = '".$kodeproduk."' ORDER BY id_peramalan LIMIT 1";
+    $query  = "SELECT hasil FROM t_peramalan WHERE kode_produk = '".$kodeproduk."' ORDER BY id_peramalan DESC LIMIT 1";
     $result = mysqli_query($conn_open,$query);
     $array_data = mysqli_fetch_assoc($result);
     free_close_db($result,$conn_open);

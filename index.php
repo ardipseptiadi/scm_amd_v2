@@ -1,5 +1,6 @@
 <?php
 include(dirname(__FILE__).'/lib/query.php');
+include(dirname(__FILE__).'/lib/function.php');
 
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
@@ -167,12 +168,12 @@ $(document).ready(function() {
     minViewMode: 1,
     autoclose: true
 	});
-	$('$tanggal').daterangepicker(
-	{
-	singleDatePicker: true,
-	format : 'YYYY-MM-DD'
-	}
-	);
+	// $('$tanggal').daterangepicker(
+	// {
+	// singleDatePicker: true,
+	// format : 'YYYY-MM-DD'
+	// }
+	// );
 });
 </script>]
 </body>
