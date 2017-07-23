@@ -1,16 +1,16 @@
 <?php
-  $data_table = getAllPengadaan();
+  $data_table = getAllPesanan();
   $list_produk = getAllProduk()
  ?>
-<h1>Verifikasi Data Pengadaan</h1>
+<h1>Verifikasi Data Pemesanan</h1>
 <hr>
 <table class="table table-bordered table-striped">
   <thead>
   <tr>
     <th>No</th>
-    <th>No Pengadaan</th>
-    <th>Tgl pengadaan</th>
-    <th>Nama Produk</th>
+    <th>No Pesanan</th>
+    <th>Tgl Pesanan</th>
+    <th>Produk dipesan</th>
     <th>Verifikasi</th>
     <th></th>
   </tr>
@@ -20,13 +20,13 @@
     <?php foreach($data_table as $data){?>
       <tr>
         <td><?=$i?></td>
-        <td><?=$data['no_pengadaan']?></td>
-        <td><?=$data['tgl_pengadaan']?></td>
-        <td><?=$data['jenis']?></td>
+        <td><?=$data['no_pesanan']?></td>
+        <td><?=$data['tgl_pesan']?></td>
+        <td><?=$data['nama_produk']?></td>
         <td><?=$data['is_verifikasi']=='1'?'<p class="label label-success">Sudah Diverifikasi</p>':'<p class="label label-default">Belum Diverifikasi</p>'?></td>
         <td>
-          <button data-id="<?=$data['id_pengadaan']?>" name="verifikasi[<?=$data['id_pengadaan']?>]" class="btn btn-xs btn-primary aksiVerifikasi" <?=$data['is_verifikasi']=='1'?'disabled':''?> ><b>verifikasi</b></button>
-          <button data-id="<?=$data['id_pengadaan']?>" name="verifikasi[<?=$data['id_pengadaan']?>]" class="btn btn-xs btn-danger batalVerifikasi" <?=$data['is_verifikasi']=='0'?'disabled':''?> ><b>batal</b></button>
+          <button data-id="<?=$data['id_pesanan']?>" name="verifikasi[<?=$data['id_pesanan']?>]" class="btn btn-xs btn-primary aksiVerifikasi" <?=$data['is_verifikasi']=='1'?'disabled':''?> ><b>verifikasi</b></button>
+          <button data-id="<?=$data['id_pesanan']?>" name="verifikasi[<?=$data['id_pesanan']?>]" class="btn btn-xs btn-danger batalVerifikasi" <?=$data['is_verifikasi']=='0'?'disabled':''?> ><b>batal</b></button>
         </td>
       </tr>
       <?php $i++;?>
@@ -38,10 +38,10 @@
 $(document).ready(function(){
 
   $(".aksiVerifikasi").click(function(){
-    var id_pengadaan = $(this).data('id');
-    $.post("proses.php?action=verifikasi_pengadaan",
+    var id_pesanan = $(this).data('id');
+    $.post("proses.php?action=verifikasi_pesanan",
       {
-        id_pengadaan: id_pengadaan,
+        id_pesanan: id_pesanan,
         verifikasi: 'verify'
       },
       function(data){
@@ -54,14 +54,14 @@ $(document).ready(function(){
           alert("Verifikasi Gagal");
         }
       });
-    console.log(id_pengadaan);
+    console.log(id_pesanan);
   });
 
   $(".batalVerifikasi").click(function(){
-    var id_pengadaan = $(this).data('id');
-    $.post("proses.php?action=verifikasi_pengadaan",
+    var id_pesanan = $(this).data('id');
+    $.post("proses.php?action=verifikasi_pesanan",
       {
-        id_pengadaan: id_pengadaan,
+        id_pesanan: id_pesanan,
         verifikasi: 'cancel'
       },
       function(data){
@@ -74,7 +74,7 @@ $(document).ready(function(){
           alert("Pembatalan Gagal");
         }
       });
-    console.log(id_pengadaan);
+    console.log(id_pesanan);
   });
 
 });

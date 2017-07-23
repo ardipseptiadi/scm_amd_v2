@@ -168,6 +168,11 @@ $(document).ready(function() {
     minViewMode: 1,
     autoclose: true
 	});
+
+  $('.date_input').datepicker({
+		format : "dd-mm-yyyy",
+    autoclose: true
+	});
 	// $('$tanggal').daterangepicker(
 	// {
 	// singleDatePicker: true,

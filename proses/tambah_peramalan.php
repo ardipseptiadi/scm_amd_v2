@@ -11,9 +11,13 @@ $date_end = $daten->format('m-Y');
 $data_pesanan=[];
 $listbulan = periodeBulan($blndata,$date_end);
 foreach ($listbulan as $value) {
-  $data_pesanan[] = getDataPesananBulan($value,$kodeproduk);
+  $get_data = getDataPesananBulan($value,$kodeproduk);
+  if($get_data){
+    $data_pesanan[] = $get_data;
+  }else{
+    $data_pesanan[] = 0;
+  }
 }
-
 if(!empty($data_pesanan)){
   $peramalan = sem_MSE($data_pesanan,$alpha,$numForecasts);
   $res = insertPeramalan($blnramal,$peramalan,$kodeproduk);

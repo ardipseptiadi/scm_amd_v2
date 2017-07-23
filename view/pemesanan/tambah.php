@@ -16,7 +16,7 @@ $list_produk=getAllProduk();
   <div class="form-group">
     <label class="col-sm-2 control-label">Tanggal Pesan</label>
     <div class="col-sm-4">
-      <input type="text" name="tgl_pesan" class="form-control" readonly="true" value="<?=date('d-m-Y')?>">
+      <input type="text" name="tgl_pesan" class="form-control date_input" readonly="true" value="<?=date('d-m-Y')?>">
     </div>
   </div>
   <div class="form-group">

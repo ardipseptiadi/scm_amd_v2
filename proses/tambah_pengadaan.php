@@ -24,6 +24,7 @@ foreach ($list_material as $key => $value) {
   );
   $res = insertDetailPengadaan($detail);
 }
+var_dump($res);exit;
 header('Location: index.php?content=pengadaan/data');
 die;
 

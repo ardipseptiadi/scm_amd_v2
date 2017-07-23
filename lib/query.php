@@ -98,8 +98,7 @@ function getAllProduk()
                 kode_produk,
                 jenis,
                 harga,
-                jumlah,
-                status
+                is_deleted
               FROM t_produk
             ");
     $array_data = mysqli_fetch_all($result,MYSQLI_ASSOC);
@@ -311,10 +310,11 @@ function insertPesanan($data)
   $id_detail = $data['id_detail'];
   $no_psn = $data['no_pesanan'];
   $id_agen = $data['id_agen'];
+  $tgl_pesan = date('Y-m-d',strtotime($data['tgl_pesan']));
   if($conn_open){
     $result = mysqli_query($conn_open,"
               INSERT INTO t_pesanan (id_detail_pesanan,no_pesanan,tgl_pesan,id_agen,created_at)
-              VALUES('$id_detail','$no_psn',NOW(),'$id_agen',NOW())
+              VALUES('$id_detail','$no_psn','$tgl_pesan','$id_agen',NOW())
             ");
     if(!$result){
       free_close_db($result,$conn_open);
@@ -380,10 +380,14 @@ function getAllMaterial()
   if($conn_open){
     $result = mysqli_query($conn_open,"
               SELECT
-                id_material,
-                nama_material
+                mat.id_material,
+                mat.nama_material,
+                mat.kd_produk,
+                prod.jenis,
+                mat.harga
               FROM
-                t_material
+                t_material mat
+              LEFT JOIN t_produk prod ON mat.kd_produk = prod.kode_produk
               ORDER BY nama_material
             ");
     $array_data = mysqli_fetch_all($result,MYSQLI_ASSOC);
@@ -559,9 +563,8 @@ function dataSafety($bln,$thn)
                   mt.id_material,
                   mt.nama_material,
                   mt.sisa,
-                  mt.status,
                   ROUND((ms.jumlah/30),2) as safety_per_30,
-                  IF(mt.sisa<(select safety_per_30),'Persediaan Tidak Aman','Persediaan Aman') AS status_tersedia
+                  IF(mt.sisa<(select safety_per_30),0,1) AS status_tersedia
                 FROM
                   t_material mt
                 LEFT JOIN
@@ -625,6 +628,7 @@ function getAllPesanan()
   if($conn_open){
     $result = mysqli_query($conn_open,"
               SELECT
+                psn.id_pesanan,
                 psn.id_detail_pesanan,
                 psn.id_agen,
                 psn.no_pesanan,
@@ -632,11 +636,13 @@ function getAllPesanan()
                 psn.is_verifikasi,
                 psn.status,
                 psd.kd_produk,
+                prod.jenis as nama_produk,
                 psd.qty_pesanan,
                 psd.harga_jual,
                 (psd.qty_pesanan * psd.harga_jual) AS tot_harga
               FROM t_pesanan psn
               LEFT JOIN t_pesanan_detail psd ON psn.id_detail_pesanan = psd.id_detail
+              LEFT JOIN t_produk prod ON psd.kd_produk = prod.kode_produk
             ");
     $array_data = mysqli_fetch_all($result,MYSQLI_ASSOC);
     free_close_db($result,$conn_open);
@@ -658,6 +664,7 @@ function getPesananDetailByID($id_detail)
                 prod.jenis as produk
               FROM t_pesanan_detail psd
               LEFT JOIN t_produk prod ON psd.kd_produk = prod.kode_produk
+              WHERE psd.id_detail = '{$id_detail}'
             ");
     $array_data = mysqli_fetch_all($result,MYSQLI_ASSOC);
     free_close_db($result,$conn_open);
@@ -736,6 +743,48 @@ function batalVerifikasiPengadaan($id)
   }
 }
 
+function verifikasiPesanan($id)
+{
+  $conn_open = open_conn();
+  if($conn_open){
+    $query = "UPDATE t_pesanan
+              SET is_verifikasi = 1
+              WHERE id_pesanan = {$id}
+            ";
+    $result = mysqli_query($conn_open,$query);
+    if(mysqli_affected_rows($conn_open)>0){
+      free_close_db($result,$conn_open);
+      return true;
+    }else{
+      free_close_db($result,$conn_open);
+      return false;
+    }
+  }else{
+    return false;
+  }
+}
+
+function batalVerifikasiPesanan($id)
+{
+  $conn_open = open_conn();
+  if($conn_open){
+    $query = "UPDATE t_pesanan
+              SET is_verifikasi = 0
+              WHERE id_pesanan = {$id}
+            ";
+    $result = mysqli_query($conn_open,$query);
+    if(mysqli_affected_rows($conn_open)>0){
+      free_close_db($result,$conn_open);
+      return true;
+    }else{
+      free_close_db($result,$conn_open);
+      return false;
+    }
+  }else{
+    return false;
+  }
+}
+
 function getLastPeramalan($kodeproduk)
 {
   $conn_open = open_conn();
@@ -760,8 +809,8 @@ function getDataPesananBulan($date,$kodeproduk)
             SELECT SUM(psd.qty_pesanan * psd.harga_jual) AS sum_pesanan
             FROM t_pesanan psn
             LEFT JOIN t_pesanan_detail psd ON psn.id_detail_pesanan = psd.id_detail
-            WHERE psn.tgl_pesan BETWEEN '".$start."' AND '".$end."')
-            AND psd.kd_produk = '{$kode_produk}'
+            WHERE psn.tgl_pesan BETWEEN '".$start."' AND '".$end."'
+            AND psd.kd_produk = '{$kodeproduk}'
               ";
     $result = mysqli_query($conn_open,$query);
     $array_data = mysqli_fetch_assoc($result);
@@ -778,6 +827,34 @@ function insertPeramalan($bln,$jumlah,$kode)
   if($conn_open){
     $query = "INSERT INTO t_peramalan (peramalan,hasil,kode_produk) VALUES ('".$bln."','".$jumlah."','".$kode."')";
     $result = mysqli_query($conn_open,$query);
+    free_close_db($result,$conn_open);
+    return true;
+  }else{
+    return false;
+  }
+}
+
+function insertProduk($kode,$nama,$harga)
+{
+  $conn_open = open_conn();
+  if($conn_open){
+    $query = "INSERT INTO t_produk (kode_produk,jenis,harga) VALUES ('".$kode."','".$nama."','".$harga."')";
+    $result = mysqli_query($conn_open,$query);
+    free_close_db($result,$conn_open);
+    return true;
+  }else{
+    return false;
+  }
+}
+
+function insertMaterial($nama,$harga,$init,$supplier,$produk)
+{
+  $conn_open = open_conn();
+  if($conn_open){
+    $query = "INSERT INTO t_material (nama_material,harga,sisa,id_supplier,kd_produk)
+              VALUES ('{$nama}','{$harga}','{$init}','{$supplier}','{$produk}')";
+    $result = mysqli_query($conn_open,$query);
+    free_close_db($result,$conn_open);
     return true;
   }else{
     return false;

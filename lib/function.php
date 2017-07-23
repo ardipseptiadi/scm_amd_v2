@@ -118,6 +118,6 @@ function generateNoPesanan()
   }else{
     $no_urut = '000001';
   }
-  return 'PSN/'.date('m'.'/'.date('Y').'/'.$no_urut);
+  return 'PSN/'.date('m').'/'.date('Y').'/'.$no_urut;
 }
  ?>

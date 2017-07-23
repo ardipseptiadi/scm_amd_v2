@@ -95,7 +95,7 @@
       <td><?=$data['nama_material'];?></td>
       <td><?=$data['sisa'];?></td>
       <td><?=$data['safety_per_30'];?></td>
-      <td><?=$data['status_tersedia'];?></td>
+      <td><?=$data['status_tersedia']==1?'<span class="label label-success">Persediaan Aman</span>':'<span class="label label-danger">Persediaan Tidak Aman</span>';?></td>
     </tr>
   <?php $i_table++;?>
   <?php } ?>
