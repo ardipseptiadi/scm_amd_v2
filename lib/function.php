@@ -120,4 +120,21 @@ function generateNoPesanan()
   }
   return 'PSN/'.date('m').'/'.date('Y').'/'.$no_urut;
 }
+
+function generateNoPengiriman()
+{
+  $lastPengiriman = getLastPengiriman();
+  if($lastPengiriman){
+    $arrTemp = explode('/',$lastPengiriman);
+    if($arrTemp[1] == date('m') && $arrTemp[2] == date('Y')){
+      $arrTemp[3] = $arrTemp[3]+1;
+		  $no_urut = str_pad($arrTemp[3],6,"0",STR_PAD_LEFT);
+    }else{
+      $no_urut = '000001';
+    }
+  }else{
+    $no_urut = '000001';
+  }
+  return 'KRM/'.date('m').'/'.date('Y').'/'.$no_urut;
+}
  ?>

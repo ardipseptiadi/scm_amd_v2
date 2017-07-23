@@ -53,7 +53,7 @@ $list_produk = getAllProduk();
       <input type="submit" name="tambahkan" class="btn btn-default" value="Tambahkan" required>
     </div>
     <div class=" col-sm-3">
-      <a href="?content=data/produk" class="btn btn-default">Batal</a>
+      <a href="?content=data/material" class="btn btn-default">Batal</a>
     </div>
   </div>
 </form>

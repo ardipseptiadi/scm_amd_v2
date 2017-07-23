@@ -19,9 +19,13 @@ if($id_detail) {
     'no_pesanan' => $no_pesanan,
     'tgl_pesan' => $tgl_pesan
   );
-  $res = insertPesanan($datapsn);
-  if($res){
-    header("Location: index.php?content=pemesanan/data");
+  $id_pesanan = insertPesanan($datapsn);
+  if($id_pesanan){
+    $tgl_kirim = $tgl_pesan;
+    $no_kirim = generateNoPengiriman();
+    $res_kirim = insertPengiriman($no_kirim,$tgl_kirim,$id_pesanan);
+    if($res_kirim)
+      header("Location: index.php?content=pemesanan/data");
   }
 }
  ?>

@@ -109,24 +109,85 @@ function getAllProduk()
   }
 }
 
+function insertPengiriman($no_kirim,$tgl,$id_pesanan)
+{
+  $conn_open = open_conn();
+  $tgl_pesan = date('Y-m-d',strtotime($tgl));
+  if($conn_open){
+    $query = "INSERT INTO t_pengiriman (no_pengiriman,tgl_kirim,id_pesanan) VALUES ('{$no_kirim}','{$tgl_pesan}','{$id_pesanan}')";
+    $result = mysqli_query($conn_open,$query);
+    if(mysqli_affected_rows($conn_open)>0){
+      free_close_db($result,$conn_open);
+      return true;
+    }else{
+      free_close_db($result,$conn_open);
+      return false;
+    }
+  }else{
+    return false;
+  }
+}
+
 function getPengiriman()
 {
   $conn_open = open_conn();
   if($conn_open){
     $result = mysqli_query($conn_open,"
               SELECT
+                kr.id_kirim,
+                kr.no_pengiriman,
                 kr.tgl_kirim,
-                ps.kode_pesan,
-                kd.no_polisi,
-                ag.nama_agen,
-                kr.status,
-                ky.nama_karyawan
+                psn.no_pesanan,
+                kr.status_kirim,
+                skr.keterangan as keterangan_kirim,
+                prod.jenis as nama_produk
               FROM t_pengiriman kr
-              JOIN t_detail_pemesanan dps ON kr.id_detail_pemesanan = dps.id_detail_pemesanan
-              JOIN t_pemesanan ps on dps.kode_pesan = ps.`kode_pesan`
-              JOIN t_kendaraan kd on kr.no_polisi = kd.no_polisi
-              JOIN t_agen ag ON ps.id_agen = ag.`id_agen`
-              JOIN t_karyawan ky on kr.id_karyawan=ky.id_karyawan
+              LEFT JOIN t_pesanan psn ON kr.id_pesanan = psn.id_pesanan
+              LEFT JOIN t_pesanan_detail psd ON psn.id_detail_pesanan = psd.id_detail
+              LEFT JOIN t_status_kirim skr ON kr.status_kirim = skr.id_status_kirim
+              LEFT JOIN t_produk prod ON psd.kd_produk = prod.kode_produk
+              WHERE psn.is_verifikasi>0
+            ");
+    $array_data = mysqli_fetch_all($result,MYSQLI_ASSOC);
+    free_close_db($result,$conn_open);
+    return $array_data;
+  }else{
+    return false;
+  }
+}
+
+function getListTunggu()
+{
+  $conn_open = open_conn();
+  if($conn_open){
+    $result = mysqli_query($conn_open,"
+              SELECT ppd.no_polisi FROM t_proses_pengiriman_detail ppd
+              LEFT JOIN t_proses_pengiriman pp ON ppd.id_proses = pp.id_proses
+              WHERE pp.status_proses = 0
+            ");
+    $array_data = mysqli_fetch_all($result,MYSQLI_ASSOC);
+    free_close_db($result,$conn_open);
+    return $array_data;
+  }else{
+    return false;
+  }
+}
+
+function getListTersedia()
+{
+  $conn_open = open_conn();
+  if($conn_open){
+    $result = mysqli_query($conn_open,"
+              SELECT t1.no_polisi,kdr.jenis_kendaraan,kdr.kapasitas 
+              FROM
+              (SELECT no_polisi FROM t_kendaraan
+                  UNION ALL
+                  SELECT ppd.no_polisi FROM t_proses_pengiriman_detail ppd
+                  LEFT JOIN t_proses_pengiriman pp ON ppd.id_proses = pp.id_proses
+                  WHERE pp.status_proses < 4 OR pp.is_deleted = 1)
+              AS t1
+              INNER JOIN t_kendaraan kdr ON t1.no_polisi = kdr.no_polisi
+              GROUP BY t1.no_polisi HAVING COUNT(*)<2
             ");
     $array_data = mysqli_fetch_all($result,MYSQLI_ASSOC);
     free_close_db($result,$conn_open);
@@ -225,6 +286,23 @@ function getLastPesanan()
   }
 }
 
+function getLastPengiriman()
+{
+  $conn_open = open_conn();
+  if($conn_open){
+    $query = "SELECT no_pengiriman
+              FROM t_pengiriman
+              WHERE no_pengiriman IS NOT NULL
+              ORDER BY id_kirim DESC LIMIT 1";
+    $result = mysqli_query($conn_open,$query);
+    $array_data = mysqli_fetch_assoc($result);
+    free_close_db($result,$conn_open);
+    return $array_data['no_pengiriman'];
+  }else{
+    return false;
+  }
+}
+
 function getNameProduk($kd)
 {
     $conn_open = open_conn();
@@ -256,6 +334,28 @@ function getHargaProduk($kd)
       return false;
     }
 }
+
+function updateProduk($kode,$nama,$harga)
+{
+  $conn_open = open_conn();
+  if($conn_open){
+    $query = "UPDATE t_produk
+              SET jenis = '{$nama}', harga = '{$harga}'
+              WHERE kode_produk = '{$kode}'
+            ";
+    $result = mysqli_query($conn_open,$query);
+    if(mysqli_affected_rows($conn_open)>0){
+      free_close_db($result,$conn_open);
+      return true;
+    }else{
+      free_close_db($result,$conn_open);
+      return false;
+    }
+  }else{
+    return false;
+  }
+}
+
 function insertPengadaan($no_pengadaan,$kd,$jml,$total_harga)
 {
   $conn_open = open_conn();
@@ -754,7 +854,8 @@ function verifikasiPesanan($id)
     $result = mysqli_query($conn_open,$query);
     if(mysqli_affected_rows($conn_open)>0){
       free_close_db($result,$conn_open);
-      return true;
+      $stat_kirim = updateStatusPengiriman(1,$id);
+      return $stat_kirim;
     }else{
       free_close_db($result,$conn_open);
       return false;
@@ -771,6 +872,27 @@ function batalVerifikasiPesanan($id)
     $query = "UPDATE t_pesanan
               SET is_verifikasi = 0
               WHERE id_pesanan = {$id}
+            ";
+    $result = mysqli_query($conn_open,$query);
+    if(mysqli_affected_rows($conn_open)>0){
+      $stat_kirim = updateStatusPengiriman(0,$id);
+      return $stat_kirim;
+    }else{
+      free_close_db($result,$conn_open);
+      return false;
+    }
+  }else{
+    return false;
+  }
+}
+
+function updateStatusPengiriman($status,$id_pesanan)
+{
+  $conn_open = open_conn();
+  if($conn_open){
+    $query = "UPDATE t_pengiriman
+              SET status_kirim = {$status}
+              WHERE id_pesanan = {$id_pesanan}
             ";
     $result = mysqli_query($conn_open,$query);
     if(mysqli_affected_rows($conn_open)>0){
@@ -806,7 +928,7 @@ function getDataPesananBulan($date,$kodeproduk)
   $conn_open = open_conn();
   if($conn_open){
     $query = "
-            SELECT SUM(psd.qty_pesanan * psd.harga_jual) AS sum_pesanan
+            SELECT SUM(psd.qty_pesanan) AS sum_pesanan
             FROM t_pesanan psn
             LEFT JOIN t_pesanan_detail psd ON psn.id_detail_pesanan = psd.id_detail
             WHERE psn.tgl_pesan BETWEEN '".$start."' AND '".$end."'
