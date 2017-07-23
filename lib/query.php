@@ -137,6 +137,7 @@ function getPengiriman()
                 kr.id_kirim,
                 kr.no_pengiriman,
                 kr.tgl_kirim,
+                kr.no_polisi,
                 psn.no_pesanan,
                 kr.status_kirim,
                 skr.keterangan as keterangan_kirim,
@@ -178,13 +179,13 @@ function getListTersedia()
   $conn_open = open_conn();
   if($conn_open){
     $result = mysqli_query($conn_open,"
-              SELECT t1.no_polisi,kdr.jenis_kendaraan,kdr.kapasitas 
+              SELECT t1.no_polisi,kdr.jenis_kendaraan,kdr.kapasitas
               FROM
               (SELECT no_polisi FROM t_kendaraan
                   UNION ALL
                   SELECT ppd.no_polisi FROM t_proses_pengiriman_detail ppd
                   LEFT JOIN t_proses_pengiriman pp ON ppd.id_proses = pp.id_proses
-                  WHERE pp.status_proses < 4 OR pp.is_deleted = 1)
+                  WHERE pp.status_proses < 3 OR pp.is_deleted = 1)
               AS t1
               INNER JOIN t_kendaraan kdr ON t1.no_polisi = kdr.no_polisi
               GROUP BY t1.no_polisi HAVING COUNT(*)<2
@@ -390,6 +391,48 @@ function insertDetailPengadaan($detail)
     $result = mysqli_query($conn_open,"
               INSERT INTO t_pengadaan_detail (no_pengadaan,id_material,id_supplier,qty_pengadaan,id_pengadaan,harga_pengadaan,created_at)
               VALUES('$no_pengadaan','$id_material','$id_supplier','$qty','$id_pengadaan',$harga_pengadaan,NOW())
+            ");
+    if(!$result){
+      free_close_db($result,$conn_open);
+      return false;
+    }else{
+      $id = mysqli_insert_id($conn_open);
+      free_close_db($result,$conn_open);
+      return $id;
+    }
+  }else{
+    return false;
+  }
+}
+
+function insertProsesPengiriman()
+{
+  $conn_open = open_conn();
+  if($conn_open){
+    $result = mysqli_query($conn_open,"
+              INSERT INTO t_proses_pengiriman (status_proses,created_at)
+              VALUES(0,NOW())
+            ");
+    if(!$result){
+      free_close_db($result,$conn_open);
+      return false;
+    }else{
+      $id = mysqli_insert_id($conn_open);
+      free_close_db($result,$conn_open);
+      return $id;
+    }
+  }else{
+    return false;
+  }
+}
+
+function insertDetailProsesPengiriman($id_proses,$no,$id_kirim)
+{
+  $conn_open = open_conn();
+  if($conn_open){
+    $result = mysqli_query($conn_open,"
+              INSERT INTO t_proses_pengiriman_detail (id_proses,no_polisi,id_kirim,created_at)
+              VALUES('{$id_proses}','{$no}',{$id_kirim},NOW())
             ");
     if(!$result){
       free_close_db($result,$conn_open);
@@ -854,7 +897,7 @@ function verifikasiPesanan($id)
     $result = mysqli_query($conn_open,$query);
     if(mysqli_affected_rows($conn_open)>0){
       free_close_db($result,$conn_open);
-      $stat_kirim = updateStatusPengiriman(1,$id);
+      $stat_kirim = updateStatusPengiriman(1,$id,null);
       return $stat_kirim;
     }else{
       free_close_db($result,$conn_open);
@@ -875,7 +918,7 @@ function batalVerifikasiPesanan($id)
             ";
     $result = mysqli_query($conn_open,$query);
     if(mysqli_affected_rows($conn_open)>0){
-      $stat_kirim = updateStatusPengiriman(0,$id);
+      $stat_kirim = updateStatusPengiriman(0,$id,null);
       return $stat_kirim;
     }else{
       free_close_db($result,$conn_open);
@@ -886,13 +929,80 @@ function batalVerifikasiPesanan($id)
   }
 }
 
-function updateStatusPengiriman($status,$id_pesanan)
+function updateStatusPengiriman($status,$id_pesanan = null,$id_kirim = null)
+{
+  $conn_open = open_conn();
+  if(!is_null($id_pesanan)){
+    $kondisi = " id_pesanan = {$id_pesanan}";
+  }else if(!is_null($id_kirim)){
+    $kondisi = " id_kirim = {$id_kirim}";
+  }
+  if($conn_open){
+    $query = "UPDATE t_pengiriman
+              SET status_kirim = {$status}
+              WHERE
+            ";
+    $query.=$kondisi;
+    $result = mysqli_query($conn_open,$query);
+    if(mysqli_affected_rows($conn_open)>0){
+      free_close_db($result,$conn_open);
+      return true;
+    }else{
+      free_close_db($result,$conn_open);
+      return false;
+    }
+  }else{
+    return false;
+  }
+}
+
+function updateProsesPengiriman($status,$id_kirim)
+{
+  $id_proses = getIdProsesPengirim($id_kirim);
+  if($id_proses){
+    $conn_open = open_conn();
+    if($conn_open){
+      $query = "UPDATE t_proses_pengiriman
+                SET status_proses = {$status}
+                WHERE id_proses = {$id_proses}";
+      $result = mysqli_query($conn_open,$query);
+      if(mysqli_affected_rows($conn_open)>0){
+        free_close_db($result,$conn_open);
+        return true;
+      }else{
+        free_close_db($result,$conn_open);
+        return false;
+      }
+    }else{
+      return false;
+    }
+  }else{
+    return false;
+  }
+}
+
+function getIdProsesPengirim($id){
+  $conn_open = open_conn();
+  if($conn_open){
+    $query = "SELECT id_proses FROM t_proses_pengiriman_detail
+              WHERE id_kirim = {$id}
+              ";
+    $result = mysqli_query($conn_open,$query);
+    $array_data = mysqli_fetch_assoc($result);
+    free_close_db($result,$conn_open);
+    return $array_data['id_proses'];
+  }else{
+    return false;
+  }
+}
+
+function updateNoPolisiPengiriman($no,$id_kirim)
 {
   $conn_open = open_conn();
   if($conn_open){
     $query = "UPDATE t_pengiriman
-              SET status_kirim = {$status}
-              WHERE id_pesanan = {$id_pesanan}
+              SET no_polisi = '{$no}'
+              WHERE id_kirim = {$id_kirim}
             ";
     $result = mysqli_query($conn_open,$query);
     if(mysqli_affected_rows($conn_open)>0){

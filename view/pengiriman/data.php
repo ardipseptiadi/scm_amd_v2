@@ -14,8 +14,8 @@
     <th>No Pengiriman</th>
     <th>Tanggal Kirim</th>
     <th>No Pesanan</th>
-    <th>No Polisi</th>
     <th>Produk</th>
+    <th>No Polisi</th>
     <th>Nama Karyawan</th>
     <th>Status</th>
     <th>Tindakan</th>
@@ -29,12 +29,21 @@
       <td><?=$data['no_pengiriman'];?></td>
       <td><?=$data['tgl_kirim'];?></td>
       <td><?=$data['no_pesanan'];?></td>
-      <td><?=$data['no_polisi'];?></td>
       <td><?=$data['nama_produk'];?></td>
+      <td><?=$data['no_polisi'];?></td>
       <td><?=$data['nama_karyawan'];?></td>
-      <td><?=$data['keterangan_kirim'];?></td>
       <td>
+
+        <?=$data['keterangan_kirim'];?>
+      </td>
+      <td>
+        <?php if($data['status_kirim'] == 1){?>
           <button class="btn btn-xs btn-primary aksiProsesKirim"  data-toggle="modal" data-target="#modalProsesKirim" data-id="<?=$data['id_kirim']?>">proses</button>
+        <?php }elseif($data['status_kirim'] == 2){?>
+          <button class="btn btn-xs btn-success aksiKirimBtn" data-id="<?=$data['id_kirim']?>">kirim</button>
+        <?php }elseif($data['status_kirim'] == 3){?>
+          <button class="btn btn-xs btn-warning aksiTerimaBtn" data-id="<?=$data['id_kirim']?>">terima</button>
+        <?php }?>
           <button class="btn btn-xs btn-danger">hapus</button>
       </td>
     </tr>
@@ -105,6 +114,40 @@ $(document).ready(function(){
     var kd_produk = $('#pengadaan_produk option:selected').val();
     var url = "index.php?content=pengadaan/tambah&kd="+kd_produk;
       $( location ).attr("href", url);
+  });
+  $(".aksiKirimBtn").click(function(){
+    var id_kirim = $(this).data('id');
+    $.post("proses.php?action=kirim_sekarang",
+    {
+      id_kirim:id_kirim
+    },function(data){
+      console.log(data);
+      var res = JSON.parse(data);
+      if(res.success){
+        alert("Pengiriman Berhasil");
+        location.reload();
+      }else{
+        console.log("not success");
+      }
+    });
+  });
+
+  $(".aksiTerimaBtn").click(function(){
+    var id_kirim = $(this).data('id');
+    $.post("proses.php?action=terima_sekarang",
+    {
+      id_kirim:id_kirim
+    },function(data){
+      console.log(data);
+      var res = JSON.parse(data);
+      if(res.success){
+        alert("Pengiriman Telah Selesai");
+        location.reload();
+      }else{
+        alert("Terjadi Kesalahan");
+        console.log("not success");
+      }
+    });
   });
 
 });

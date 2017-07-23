@@ -85,7 +85,7 @@ function getPengadaanMaterial($kd_produk,$id_material,$date)
   if($b==0 || $c ==0){
     $res = 0;
   }else{
-    $res = ($a+$b-$c);
+    $res = ($a+$b)-$c;
   }
   return $res;
 }
@@ -136,5 +136,16 @@ function generateNoPengiriman()
     $no_urut = '000001';
   }
   return 'KRM/'.date('m').'/'.date('Y').'/'.$no_urut;
+}
+
+function simpanProsesKirim($id,$no)
+{
+  $id_proses = insertProsesPengiriman();
+  if($id_proses){
+    $id_detail_proses = insertDetailProsesPengiriman($id_proses,$no,$id);
+    return true;
+  }else{
+    return false;
+  }
 }
  ?>
