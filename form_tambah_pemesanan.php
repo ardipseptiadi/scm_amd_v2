@@ -17,7 +17,7 @@ if ($_SESSION['statuslogin']){
 
 	mysqli_close($con);
 }else{
-	header("location: http://localhost/amidis/login/login.php");
+	// header("location: http://localhost/amidis/login/login.php");
 }
 
 ?>
@@ -175,7 +175,7 @@ if ($_SESSION['statuslogin']){
     </div>
 
   </div>
-  
+
   <div class="form-group">
     <div class="col-sm-offset-2 col-sm-2">
       <input type="submit" name="tambahkan" class="btn btn-default" value="Tambahkan" required>
@@ -187,7 +187,7 @@ if ($_SESSION['statuslogin']){
 </form>
 </div>
     <div class="col-sm-1 sidenav">
-      
+
    </div>
  </div>
 </div>

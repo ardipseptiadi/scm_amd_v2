@@ -37,7 +37,7 @@
     <input type="submit" name="tambahkan" class="btn btn-default" value="Tambahkan">
   </div>
   <div class=" col-sm-3">
-    <a href="../dataperamalan.php" class="btn btn-default">Batal</a>
+    <a href="index.php?content=data/peramalan" class="btn btn-default">Batal</a>
   </div>
 </div>
 </form>

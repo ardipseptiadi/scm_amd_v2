@@ -180,7 +180,7 @@ function getPeramalanByProduk($kd,$date)
 {
   $conn_open = open_conn();
   if($conn_open){
-    $query = "SELECT hasil FROM t_peramalan WHERE peramalan = {$date} AND kode_produk = {$kd} ORDER BY id_peramalan DESC LIMIT 1
+    $query = "SELECT hasil FROM t_peramalan WHERE peramalan = '{$date}' AND kode_produk = '{$kd}' ORDER BY id_peramalan DESC LIMIT 1
               ";
     $result = mysqli_query($conn_open,$query);
     $array_data = mysqli_fetch_assoc($result);
@@ -209,6 +209,23 @@ function getLastPengadaan($kd)
   }
 }
 
+function getLastPesanan()
+{
+  $conn_open = open_conn();
+  if($conn_open){
+    $query = "SELECT no_pesanan
+              FROM t_pesanan
+              WHERE no_pesanan IS NOT NULL
+              ORDER BY created_at DESC LIMIT 1";
+    $result = mysqli_query($conn_open,$query);
+    $array_data = mysqli_fetch_assoc($result);
+    free_close_db($result,$conn_open);
+    return $array_data['no_pesanan'];
+  }else{
+    return false;
+  }
+}
+
 function getNameProduk($kd)
 {
     $conn_open = open_conn();
@@ -225,6 +242,21 @@ function getNameProduk($kd)
     }
 }
 
+function getHargaProduk($kd)
+{
+    $conn_open = open_conn();
+    if($conn_open){
+      $query = "SELECT harga
+                FROM t_produk
+                WHERE kode_produk = '{$kd}'";
+      $result = mysqli_query($conn_open,$query);
+      $array_data = mysqli_fetch_assoc($result);
+      free_close_db($result,$conn_open);
+      return $array_data['harga'];
+    }else{
+      return false;
+    }
+}
 function insertPengadaan($no_pengadaan,$kd,$jml,$total_harga)
 {
   $conn_open = open_conn();
@@ -254,10 +286,59 @@ function insertDetailPengadaan($detail)
   $id_supplier = $detail['id_supplier'];
   $id_pengadaan = $detail['id_pengadaan'];
   $qty = $detail['qty'];
+  $harga_pengadaan = $qty * $detail['harga'];
   if($conn_open){
     $result = mysqli_query($conn_open,"
-              INSERT INTO t_pengadaan_detail (no_pengadaan,id_material,id_supplier,qty_pengadaan,id_pengadaan,created_at)
-              VALUES('$no_pengadaan','$id_material','$id_supplier','$qty','$id_pengadaan',NOW())
+              INSERT INTO t_pengadaan_detail (no_pengadaan,id_material,id_supplier,qty_pengadaan,id_pengadaan,harga_pengadaan,created_at)
+              VALUES('$no_pengadaan','$id_material','$id_supplier','$qty','$id_pengadaan',$harga_pengadaan,NOW())
+            ");
+    if(!$result){
+      free_close_db($result,$conn_open);
+      return false;
+    }else{
+      $id = mysqli_insert_id($conn_open);
+      free_close_db($result,$conn_open);
+      return $id;
+    }
+  }else{
+    return false;
+  }
+}
+
+function insertPesanan($data)
+{
+  $conn_open = open_conn();
+  $id_detail = $data['id_detail'];
+  $no_psn = $data['no_pesanan'];
+  $id_agen = $data['id_agen'];
+  if($conn_open){
+    $result = mysqli_query($conn_open,"
+              INSERT INTO t_pesanan (id_detail_pesanan,no_pesanan,tgl_pesan,id_agen,created_at)
+              VALUES('$id_detail','$no_psn',NOW(),'$id_agen',NOW())
+            ");
+    if(!$result){
+      free_close_db($result,$conn_open);
+      return false;
+    }else{
+      $id = mysqli_insert_id($conn_open);
+      free_close_db($result,$conn_open);
+      return $id;
+    }
+  }else{
+    return false;
+  }
+}
+
+function insertDetailPesanan($data)
+{
+  $conn_open = open_conn();
+  $kd_produk = $data['kd_produk'];
+  $qty = $data['qty'];
+  $harga = $data['harga'];
+  if($conn_open){
+    $result = mysqli_query($conn_open,"
+              INSERT INTO t_pesanan_detail (kd_produk,qty_pesanan,harga_jual,created_at)
+              VALUES('$kd_produk','$qty','$harga',NOW())
             ");
     if(!$result){
       free_close_db($result,$conn_open);
@@ -320,7 +401,8 @@ function getAllMaterialByProduk($kode)
     $result = mysqli_query($conn_open,"
               SELECT
                 id_material,
-                nama_material
+                nama_material,
+                harga
               FROM
                 t_material
               WHERE
@@ -478,8 +560,8 @@ function dataSafety($bln,$thn)
                   mt.nama_material,
                   mt.sisa,
                   mt.status,
-                  ms.jumlah,
-                  IF(mt.sisa<ms.jumlah,'Persediaan Tidak Aman','Persediaan Aman') AS status_tersedia
+                  ROUND((ms.jumlah/30),2) as safety_per_30,
+                  IF(mt.sisa<(select safety_per_30),'Persediaan Tidak Aman','Persediaan Aman') AS status_tersedia
                 FROM
                   t_material mt
                 LEFT JOIN
@@ -524,9 +606,58 @@ function getAllPengadaan()
                 pgd.no_pengadaan,
                 pgd.tgl_pengadaan,
                 prd.jenis,
-                pgd.is_verifikasi
+                pgd.is_verifikasi,
+                pgd.total_harga
               FROM t_pengadaan pgd
               INNER JOIN t_produk prd ON pgd.kd_produk = prd.kode_produk
+            ");
+    $array_data = mysqli_fetch_all($result,MYSQLI_ASSOC);
+    free_close_db($result,$conn_open);
+    return $array_data;
+  }else{
+    return false;
+  }
+}
+
+function getAllPesanan()
+{
+  $conn_open = open_conn();
+  if($conn_open){
+    $result = mysqli_query($conn_open,"
+              SELECT
+                psn.id_detail_pesanan,
+                psn.id_agen,
+                psn.no_pesanan,
+                psn.tgl_pesan,
+                psn.is_verifikasi,
+                psn.status,
+                psd.kd_produk,
+                psd.qty_pesanan,
+                psd.harga_jual,
+                (psd.qty_pesanan * psd.harga_jual) AS tot_harga
+              FROM t_pesanan psn
+              LEFT JOIN t_pesanan_detail psd ON psn.id_detail_pesanan = psd.id_detail
+            ");
+    $array_data = mysqli_fetch_all($result,MYSQLI_ASSOC);
+    free_close_db($result,$conn_open);
+    return $array_data;
+  }else{
+    return false;
+  }
+}
+
+function getPesananDetailByID($id_detail)
+{
+  $conn_open = open_conn();
+  if($conn_open){
+    $result = mysqli_query($conn_open,"
+              SELECT
+                psd.kd_produk,
+                psd.qty_pesanan,
+                psd.harga_jual,
+                prod.jenis as produk
+              FROM t_pesanan_detail psd
+              LEFT JOIN t_produk prod ON psd.kd_produk = prod.kode_produk
             ");
     $array_data = mysqli_fetch_all($result,MYSQLI_ASSOC);
     free_close_db($result,$conn_open);
@@ -545,7 +676,8 @@ function getPengadaanDetailByID($id)
                 pgd.no_pengadaan,
                 pgd.qty_pengadaan,
                 mt.nama_material,
-                sp.nama_supplier
+                sp.nama_supplier,
+                pgd.harga_pengadaan
               FROM t_pengadaan_detail pgd
               LEFT JOIN
                 t_material mt ON pgd.id_material = mt.id_material
@@ -625,16 +757,16 @@ function getDataPesananBulan($date,$kodeproduk)
   $conn_open = open_conn();
   if($conn_open){
     $query = "
-            SELECT SUM(jumlah) AS jumlah FROM t_detail_pemesanan
-            WHERE kode_produk = '".$kodeproduk."'
-            AND kode_pesan IN (
-            SELECT kode_pesan FROM t_pemesanan
-            WHERE tgl_pesan BETWEEN '".$start."' AND '".$end."')
+            SELECT SUM(psd.qty_pesanan * psd.harga_jual) AS sum_pesanan
+            FROM t_pesanan psn
+            LEFT JOIN t_pesanan_detail psd ON psn.id_detail_pesanan = psd.id_detail
+            WHERE psn.tgl_pesan BETWEEN '".$start."' AND '".$end."')
+            AND psd.kd_produk = '{$kode_produk}'
               ";
     $result = mysqli_query($conn_open,$query);
     $array_data = mysqli_fetch_assoc($result);
     free_close_db($result,$conn_open);
-    return $array_data['jumlah'];
+    return $array_data['sum_pesanan'];
   }else{
     return false;
   }

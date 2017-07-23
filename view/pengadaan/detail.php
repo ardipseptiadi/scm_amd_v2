@@ -20,6 +20,7 @@
     <th>Material</th>
     <th>Supplier</th>
     <th>QTY</th>
+    <th>Harga</th>
   </tr>
   </thead>
   <tbody>
@@ -31,6 +32,7 @@
         <td><?=$data['nama_material']?></td>
         <td><?=$data['nama_supplier']?></td>
         <td><?=$data['qty_pengadaan']?></td>
+        <td><?=$data['harga_pengadaan']?></td>
       </tr>
       <?php $i++;?>
     <?php }?>

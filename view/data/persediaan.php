@@ -94,7 +94,7 @@
       <td><?=$i_table?></td>
       <td><?=$data['nama_material'];?></td>
       <td><?=$data['sisa'];?></td>
-      <td><?=$data['jumlah']/30;?></td>
+      <td><?=$data['safety_per_30'];?></td>
       <td><?=$data['status_tersedia'];?></td>
     </tr>
   <?php $i_table++;?>

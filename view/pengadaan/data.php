@@ -15,6 +15,7 @@
     <th>No Pengadaan</th>
     <th>Tgl pengadaan</th>
     <th>Nama Produk</th>
+    <th>Total Harga</th>
     <th>Verifikasi</th>
     <th></th>
   </tr>
@@ -27,6 +28,7 @@
         <td><?=$data['no_pengadaan']?></td>
         <td><?=$data['tgl_pengadaan']?></td>
         <td><?=$data['jenis']?></td>
+        <td><?=$data['total_harga']?></td>
         <td><?=$data['is_verifikasi']=='1'?'Sudah Diverifikasi':'Belum Diverifikasi'?></td>
         <td><a href="index.php?content=pengadaan/detail&id=<?=$data['id_pengadaan']?>" class="btn btn-xs btn-primary">detail</a></td>
       </tr>
@@ -68,7 +70,7 @@ $(document).ready(function(){
 
   $(".tambahPengadaan").click(function(){
     var kd_produk = $('#pengadaan_produk option:selected').val();
-    var url = "index.php?content=tambah/pengadaan&kd="+kd_produk;
+    var url = "index.php?content=pengadaan/tambah&kd="+kd_produk;
       $( location ).attr("href", url);
   });
 

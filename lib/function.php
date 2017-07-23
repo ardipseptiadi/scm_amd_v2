@@ -76,13 +76,18 @@ function sem_MSE($data,$alpha,$numForecasts)
 
 function getPengadaanMaterial($kd_produk,$id_material,$date)
 {
-  $date = explode($date,'-');
-  $safety = getMaterialSafety($id_material,$date[0],$date[1]);
+  $date_e = explode('-',$date);
+  $safety = getMaterialSafety($id_material,$date_e[0],$date_e[1]);
   $peramalan = getPeramalanByProduk($kd_produk,$date);
   $a=!$peramalan['hasil']?0:$peramalan['hasil'];
-  $b=!$safety['jumlah']?0:$safety['jumlah'];
+  $b=!$safety['jumlah']?0:$safety['jumlah']/30;
   $c=!$safety['sisa']?0:$safety['sisa'];
-  return $res = ($a+$b-$c);
+  if($b==0 || $c ==0){
+    $res = 0;
+  }else{
+    $res = ($a+$b-$c);
+  }
+  return $res;
 }
 
 function generateNoPengadaan($kode_produk)
@@ -91,11 +96,28 @@ function generateNoPengadaan($kode_produk)
   if(isset($lastPengadaan['no_pengadaan'])){
     $no_terakhir = $lastPengadaan['no_pengadaan'];
     $arrTemp = explode('/',$no_terakhir);
-    $arrTemp[3] = $arrTemp[3]+1;;
+    $arrTemp[3] = $arrTemp[3]+1;
 		$no_urut = str_pad($arrTemp[3],6,"0",STR_PAD_LEFT);
   }else{
     $no_urut = '000001';
   }
   return 'PGD/'.date('m').'/'.$kode_produk.'/'.$no_urut;
+}
+
+function generateNoPesanan()
+{
+  $lastPesanan = getLastPesanan();
+  if($lastPesanan){
+    $arrTemp = explode('/',$lastPesanan);
+    if($arrTemp[1] == date('m') && $arrTemp[2] == date('Y')){
+      $arrTemp[3] = $arrTemp[3]+1;
+		  $no_urut = str_pad($arrTemp[3],6,"0",STR_PAD_LEFT);
+    }else{
+      $no_urut = '000001';
+    }
+  }else{
+    $no_urut = '000001';
+  }
+  return 'PSN/'.date('m'.'/'.date('Y').'/'.$no_urut);
 }
  ?>
