@@ -68,7 +68,7 @@ $(document).ready(function(){
 
   $(".tambahPengadaan").click(function(){
     var kd_produk = $('#pengadaan_produk option:selected').val();
-    var url = "index.php?content=tambah/pengadaan&kd="+kd_produk;
+    var url = "index.php?content=pengadaan/tambah&kd="+kd_produk;
       $( location ).attr("href", url);
   });
 

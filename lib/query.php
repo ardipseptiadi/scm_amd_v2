@@ -1020,8 +1020,11 @@ function updateNoPolisiPengiriman($no,$id_kirim)
 function getLastPeramalan($kodeproduk)
 {
   $conn_open = open_conn();
+  $bln = date('m');
+  $thn = date('Y');
+  $rml = $bln.'-'.$thn;
   if($conn_open){
-    $query  = "SELECT hasil FROM t_peramalan WHERE kode_produk = '".$kodeproduk."' ORDER BY id_peramalan DESC LIMIT 1";
+    $query  = "SELECT hasil FROM t_peramalan WHERE kode_produk = '".$kodeproduk."' AND peramalan = '{$rml}' ORDER BY id_peramalan DESC LIMIT 1";
     $result = mysqli_query($conn_open,$query);
     $array_data = mysqli_fetch_assoc($result);
     free_close_db($result,$conn_open);
@@ -1058,6 +1061,80 @@ function insertPeramalan($bln,$jumlah,$kode)
   $conn_open = open_conn();
   if($conn_open){
     $query = "INSERT INTO t_peramalan (peramalan,hasil,kode_produk) VALUES ('".$bln."','".$jumlah."','".$kode."')";
+    $result = mysqli_query($conn_open,$query);
+    free_close_db($result,$conn_open);
+    return true;
+  }else{
+    return false;
+  }
+}
+
+function insertAgen($data)
+{
+  $nama = $data['namaagen'];
+  $alamat = $data['alamat_agen'];
+  $kontak = $data['kontak'];
+  $email = $data['email'];
+  $status = $data['statusagen'];
+  $conn_open = open_conn();
+  if($conn_open){
+    $query = "INSERT INTO t_agen (nama_agen,alamat_agen,kontak,email,status) VALUES ('{$nama}','{$alamat}','{$kontak}','{$email}','{$status}')";
+    $result = mysqli_query($conn_open,$query);
+    free_close_db($result,$conn_open);
+    return true;
+  }else{
+    return false;
+  }
+}
+
+function insertSupplier($data)
+{
+  $nama = $data['nama'];
+  $alamat = $data['alamat'];
+  $kontak = $data['kontak'];
+  $email = $data['email'];
+  $status = $data['status'];
+  $conn_open = open_conn();
+  if($conn_open){
+    $query = "INSERT INTO t_supplier (nama_supplier,alamat_supplier,kontak,email,status) VALUES ('{$nama}','{$alamat}','{$kontak}','{$email}','{$status}')";
+    $result = mysqli_query($conn_open,$query);
+    free_close_db($result,$conn_open);
+    return true;
+  }else{
+    return false;
+  }
+}
+
+function insertKaryawan($data)
+{
+  $nama = $data['nama'];
+  $nip = $data['nip'];
+  $jabatan = $data['jabatan'];
+  $kontak = $data['kontak'];
+  $email = $data['email'];
+  $status = $data['statusagen'];
+  $conn_open = open_conn();
+  if($conn_open){
+    $query = "INSERT INTO t_karyawan (nip,nama_karyawan,kontak,jabatan,email,status,password) VALUES ('{$nip}','{$nama}','{$kontak}','{$jabatan}','{$email}','{$status}',md5(123))";
+    $result = mysqli_query($conn_open,$query);
+    free_close_db($result,$conn_open);
+    return true;
+  }else{
+    return false;
+  }
+}
+
+function insertKendaraan($data)
+{
+  $nopol = $data['no_polisi'];
+  $jenis = $data['jenis_kendaraan'];
+  $kendaraan = $data['kendaraan'];
+  $kapasitas = $data['kapasitas'];
+  $status = $data['status'];
+  $produk = $data['produk'];
+  $conn_open = open_conn();
+  if($conn_open){
+    $query = "INSERT INTO t_kendaraan (no_polisi,jenis_kendaraan,kendaraan,kapasitas,status,kd_produk) VALUES ('{$nopol}','{$jenis}','{$kendaraan}','{$kapasitas}','{$status}','{$produk}')";
     $result = mysqli_query($conn_open,$query);
     free_close_db($result,$conn_open);
     return true;

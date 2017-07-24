@@ -4,7 +4,7 @@
 <h1>Pengolahan Data Supplier</h1>
 <hr>
 <div style="text-align: right;">
-<a type="button" href="form/form_tambah_agen.php" class="btn btn-warning">Tambah Data Supplier </a>
+<a type="button" href="index.php?content=tambah/supplier" class="btn btn-warning">Tambah Data Supplier </a>
 </div> <br>
 <table class="table table-bordered table-striped">
   <thead>

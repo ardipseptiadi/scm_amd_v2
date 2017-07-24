@@ -80,7 +80,7 @@
     $rekomendasi = getPengadaanMaterial($kd_produk,$value['id_material'],$date);
     ?>
   <div class="col-sm-2">
-    <input type="number" name="pengadaan[<?=$value['id_material']?>]" class="form-control" required min="1" max="999999" value="<?=$rekomendasi?>" data-id="<?=$value['id_material']?>"/>
+    <input type="number" name="pengadaan[<?=$value['id_material']?>]" class="form-control" required min="1" max="999999" value="<?=round($rekomendasi)?>" data-id="<?=$value['id_material']?>"/>
   </div>
   <?php }?>
 </div>
@@ -89,7 +89,7 @@
   <input type="submit" name="tambahkan" class="btn btn-primary" value="Tambahkan" required>
   </div>
   <div class=" col-sm-3">
-  <a href="index.php?content=data/pengadaan" class="btn btn-default">Batal</a>
+  <a href="index.php?content=pengadaan/data" class="btn btn-default">Batal</a>
   </div>
 </div>
 </form>

@@ -4,7 +4,7 @@
 <h1>Pengolahan Data Kendaraan</h1>
 <hr>
 <div style="text-align: right;">
-<a type="button" href="form/form_tambah_agen.php" class="btn btn-warning">Tambah Data Kendaraan </a>
+<a type="button" href="index.php?content=tambah/kendaraan" class="btn btn-warning">Tambah Data Kendaraan </a>
 </div> <br>
 <table class="table table-bordered table-striped">
   <thead>

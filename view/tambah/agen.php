@@ -2,7 +2,7 @@
 <hr>
 <center><h3> Form Tambah Data Agen</h3></center><br />
 <p>Semua Kolom harus diisi !</p>
-<form class="form-horizontal" name="tambahagen" method="post" action="agen_proses.php">
+<form class="form-horizontal" name="tambahagen" method="post" action="proses.php?action=tambah_agen">
   <div class="form-group">
     <label for="input_namaagen" class="col-sm-2 control-label">Nama Agen</label>
     <div class="col-sm-4">
@@ -32,8 +32,8 @@
     <div class="col-sm-4">
       <select class="form-control" name="statusagen" required>
         <option>Pilih</option>
-        <option>Aktif</option>
-        <option>Tidak Aktif</option>
+        <option value="aktif">Aktif</option>
+        <option value="tidak aktif">Tidak Aktif</option>
       </select>
     </div>
   </div>
