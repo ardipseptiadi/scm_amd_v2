@@ -1170,6 +1170,60 @@ function insertMaterial($nama,$harga,$init,$supplier,$produk)
   }
 }
 
+function getMonitoringKendaraan()
+{
+  $conn_open = open_conn();
+  if($conn_open){
+    $query = "SELECT kr.no_polisi,pp.status_proses,kr.status
+              FROM t_kendaraan kr
+              LEFT JOIN t_proses_pengiriman_detail ppd ON kr.no_polisi = ppd.no_polisi
+              LEFT JOIN t_proses_pengiriman pp ON ppd.id_proses = pp.id_proses
+    ";
+    $result = mysqli_query($conn_open,$query);
+    $array_data = mysqli_fetch_all($result,MYSQLI_ASSOC);
+    free_close_db($result,$conn_open);
+    return $array_data;
+  }else{
+    return false;
+  }
+}
+
+function getMonitoringPesanan()
+{
+  $conn_open = open_conn();
+  if($conn_open){
+    $query = "SELECT
+                ps.no_pesanan as nomor,
+                ps.is_verifikasi,
+                kr.status_kirim,
+                skr.keterangan
+              FROM t_pesanan ps
+              LEFT JOIN t_pengiriman kr ON ps.id_pesanan = kr.id_pesanan
+              LEFT JOIN t_status_kirim skr ON kr.status_kirim = skr.id_status_kirim
+              ";
+    $result = mysqli_query($conn_open,$query);
+    $array_data = mysqli_fetch_all($result,MYSQLI_ASSOC);
+    free_close_db($result,$conn_open);
+    return $array_data;
+  }else{
+    return false;
+  }
+}
+
+function getMonitoringPengadaan()
+{
+  $conn_open = open_conn();
+  if($conn_open){
+    $query = "SELECT no_pengadaan,is_verifikasi FROM t_pengadaan";
+    $result = mysqli_query($conn_open,$query);
+    $array_data = mysqli_fetch_all($result,MYSQLI_ASSOC);
+    free_close_db($result,$conn_open);
+    return $array_data;
+  }else{
+    return false;
+  }
+}
+
 function cekLogin($nip,$pass)
 {
   $nip = trim($nip);
