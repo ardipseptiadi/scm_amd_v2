@@ -1,8 +1,8 @@
 <?php
 
 $config_db = array(
-  'host' => 'localhost',
+  'host' => 'localhost:3308',
   'user' => 'root',
-  'pass' => '',
+  'pass' => 'abc123',
   'db' => 'dbamidis'
 );

@@ -141,12 +141,15 @@ function getPengiriman()
                 psn.no_pesanan,
                 kr.status_kirim,
                 skr.keterangan as keterangan_kirim,
-                prod.jenis as nama_produk
+                prod.jenis as nama_produk,
+                krw.nama_karyawan
               FROM t_pengiriman kr
               LEFT JOIN t_pesanan psn ON kr.id_pesanan = psn.id_pesanan
               LEFT JOIN t_pesanan_detail psd ON psn.id_detail_pesanan = psd.id_detail
               LEFT JOIN t_status_kirim skr ON kr.status_kirim = skr.id_status_kirim
               LEFT JOIN t_produk prod ON psd.kd_produk = prod.kode_produk
+              LEFT JOIN t_kendaraan knd ON kr.no_polisi = knd.no_polisi
+              LEFT JOIN t_karyawan krw ON knd.id_karyawan = krw.id_karyawan
               WHERE psn.is_verifikasi>0
             ");
     $array_data = mysqli_fetch_all($result,MYSQLI_ASSOC);
@@ -343,6 +346,111 @@ function updateProduk($kode,$nama,$harga)
     $query = "UPDATE t_produk
               SET jenis = '{$nama}', harga = '{$harga}'
               WHERE kode_produk = '{$kode}'
+            ";
+    $result = mysqli_query($conn_open,$query);
+    if(mysqli_affected_rows($conn_open)>0){
+      free_close_db($result,$conn_open);
+      return true;
+    }else{
+      free_close_db($result,$conn_open);
+      return false;
+    }
+  }else{
+    return false;
+  }
+}
+
+function updateAgen($id,$nama,$alamat,$kontak,$email)
+{
+  $conn_open = open_conn();
+  if($conn_open){
+    $query = "UPDATE t_agen
+              SET nama_agen = '{$nama}', alamat_agen = '{$alamat}', kontak = '{$kontak}', email = '{$email}'
+              WHERE id_agen = '{$id}'
+            ";
+    $result = mysqli_query($conn_open,$query);
+    if(mysqli_affected_rows($conn_open)>0){
+      free_close_db($result,$conn_open);
+      return true;
+    }else{
+      free_close_db($result,$conn_open);
+      return false;
+    }
+  }else{
+    return false;
+  }
+}
+
+function updateKaryawan($id,$nama,$kontak,$email)
+{
+  $conn_open = open_conn();
+  if($conn_open){
+    $query = "UPDATE t_karyawan
+              SET nama_karyawan = '{$nama}', kontak = '{$kontak}', email = '{$email}'
+              WHERE id_karyawan = '{$id}'
+            ";
+    $result = mysqli_query($conn_open,$query);
+    if(mysqli_affected_rows($conn_open)>0){
+      free_close_db($result,$conn_open);
+      return true;
+    }else{
+      free_close_db($result,$conn_open);
+      return false;
+    }
+  }else{
+    return false;
+  }
+}
+
+function updateSupplier($id,$nama,$alamat,$kontak,$email)
+{
+  $conn_open = open_conn();
+  if($conn_open){
+    $query = "UPDATE t_supplier
+              SET nama_supplier = '{$nama}',alamat_supplier = '{$alamat}', kontak = '{$kontak}', email = '{$email}'
+              WHERE id_supplier = '{$id}'
+            ";
+    $result = mysqli_query($conn_open,$query);
+    if(mysqli_affected_rows($conn_open)>0){
+      free_close_db($result,$conn_open);
+      return true;
+    }else{
+      free_close_db($result,$conn_open);
+      return false;
+    }
+  }else{
+    return false;
+  }
+}
+
+function updateMaterial($id,$nama,$harga)
+{
+  $conn_open = open_conn();
+  if($conn_open){
+    $query = "UPDATE t_material
+              SET nama_material = '{$nama}',harga = '{$harga}'
+              WHERE id_material = '{$id}'
+            ";
+    $result = mysqli_query($conn_open,$query);
+    if(mysqli_affected_rows($conn_open)>0){
+      free_close_db($result,$conn_open);
+      return true;
+    }else{
+      free_close_db($result,$conn_open);
+      return false;
+    }
+  }else{
+    return false;
+  }
+}
+
+function updateKendaraan($nopol,$kendaraan,$jenis,$kapasitas)
+{
+  $conn_open = open_conn();
+  if($conn_open){
+    $query = "UPDATE t_kendaraan
+              SET jenis_kendaraan = '{$jenis}', kendaraan = '{$kendaraan}', kapasitas = '{$kapasitas}'
+              WHERE no_polisi = '{$nopol}'
             ";
     $result = mysqli_query($conn_open,$query);
     if(mysqli_affected_rows($conn_open)>0){
@@ -1224,6 +1332,21 @@ function getMonitoringPengadaan()
   }
 }
 
+function getMonitoringPengiriman()
+{
+  $conn_open = open_conn();
+  if($conn_open){
+    $query = "SELECT kr.no_pengiriman,kr.tgl_kirim,sk.keterangan FROM t_pengiriman kr
+              LEFT JOIN t_status_kirim sk ON kr.status_kirim = sk.id_status_kirim";
+    $result = mysqli_query($conn_open,$query);
+    $array_data = mysqli_fetch_all($result,MYSQLI_ASSOC);
+    free_close_db($result,$conn_open);
+    return $array_data;
+  }else{
+    return false;
+  }
+}
+
 function cekLogin($nip,$pass)
 {
   $nip = trim($nip);
@@ -1238,7 +1361,7 @@ function cekLogin($nip,$pass)
               WHERE
                 nip = '".mysqli_real_escape_string($conn_open,$nip)."'
                 AND
-                password = '".mysqli_real_escape_string($conn_open,$pass)."'
+                password = md5('".mysqli_real_escape_string($conn_open,$pass)."')
             ");
     if(mysqli_num_rows($result) == 1){
       return true;
@@ -1265,7 +1388,7 @@ function getLoginData($nip,$pass)
             WHERE
               nip = ?
               AND
-              password = ?
+              password = md5(?)
           ");
     mysqli_stmt_bind_param($stmt, 'is', $nip, $pass);
     mysqli_stmt_execute($stmt);

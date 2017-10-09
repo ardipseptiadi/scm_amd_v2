@@ -23,8 +23,8 @@
     <tr>
       <td><?=$i?></td>
       <td><?=$data['peramalan']?></td>
-      <td><?=$data['hasil']?></td>
       <td><?=$data['kode_produk']?></td>
+      <td><?=$data['hasil']?></td>
     </tr>
   <?php
     $i++;
